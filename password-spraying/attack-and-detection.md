@@ -57,3 +57,6 @@ The alert was triggered successfully at `09:53`, around 10 minutes after the att
 was executed, confirming the detection logic correctly identifies the
 simulated spraying pattern.
 
+![Alert triggered](evidence/alert_result.png)
+
+![Alert triggered](evidence/alert_details.png)

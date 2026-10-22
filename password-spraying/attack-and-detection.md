@@ -105,10 +105,11 @@ index=wineventlog (EventCode=4625 OR EventCode=4624) src_ip=*
 | stats count(eval(EventCode=4625)) as fails, count(eval(EventCode=4624)) as successes, dc(TargetUserName) as users_targeted, values(eval(if(EventCode=4624,TargetUserName,null))) as compromised_accounts by _time, src_ip
 | where fails>=5 AND successes>=1
 ```
+but this rule presented another weakness. 
 
 ## 5. Detection Logic Weakness Discovered
 
-Initial testing revealed a design flaw: the rule required 5+ failures
+Initial testing of the last mentioned alert revealed a design flaw: the rule required 5+ failures
 within the *same* 15-minute bin as the success. In a real attack where
 the correct password is found early in the account list (e.g., the 3rd
 of 10 attempts), only 2 failures precede the success — below the
@@ -121,7 +122,7 @@ from a fixed time bin, instead correlating all failures and the
 success per source IP within a wider time correlation window, lowering
 the failure threshold to 3 to balance detection coverage against noise.
 
-the last crafted rule : 
+**The last crafted rule :** 
 ```
 index=wineventlog (EventCode=4625 OR EventCode=4624) 
 | where NOT match(TargetUserName, "\$") AND TargetUserName!="SYSTEM" AND TargetUserName!="ANONYMOUS LOGON"
@@ -129,14 +130,23 @@ index=wineventlog (EventCode=4625 OR EventCode=4624)
 | where fails>=3 AND successes>=1 AND abs(last_success - last_fail) <= 900
 ```
 
-** The Second Attack 
+which Flags a likely compromised account after a password-spraying attempt.
+For each source IP, it looks for a successful logon that happened shortly
+after several failed login attempts (excluding system/anonymous noise).
+If a recent failure and a recent success from the same source occur
+within 15 minutes of each other, the account is likely compromised.
+Maps to MITRE ATT&CK T1110.003 (Password Spraying).
+
+**The Second Attack :** 
 
 ![Alert triggered](evidence/attack2.png)
 
 
-** The resulted Alert 
+**The resulted Alert :** 
 
 ![Alert triggered](evidence/alert2.png)
+
+**Alert Details:**
 
 ![Alert triggered](evidence/alert2_detail.png)
 

@@ -4,9 +4,9 @@
 
 **Technique:** Password Spraying (MITRE ATT&CK T1110.003)
 
-**Target_machine:**  Windows 11 (10.0.2.10)
+**Target machine:**  Windows 11 (10.0.2.10)
 
-**Attack_machine:** kali (10.0.2.15)
+**Attack machine:** kali (10.0.2.15)
 
 **Target accounts:** TestUser1–TestUser8, George.h, sara.ad, Administrator (11 accounts)
 

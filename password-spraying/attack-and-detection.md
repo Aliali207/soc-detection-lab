@@ -98,3 +98,56 @@ The detection logic was refined to exclude this account from the
 ANONYMOUS LOGON itself can be a reconnaissance indicator and, in a
 production environment, may warrant a separate, lower-severity alert.
 
+```
+index=wineventlog (EventCode=4625 OR EventCode=4624) src_ip=*
+| where NOT match(TargetUserName, "\$$") AND TargetUserName!="SYSTEM" AND TargetUserName!="ANONYMOUS LOGON"
+| bin _time span=15m
+| stats count(eval(EventCode=4625)) as fails, count(eval(EventCode=4624)) as successes, dc(TargetUserName) as users_targeted, values(eval(if(EventCode=4624,TargetUserName,null))) as compromised_accounts by _time, src_ip
+| where fails>=5 AND successes>=1
+```
+
+## 5. Detection Logic Weakness Discovered
+
+Initial testing revealed a design flaw: the rule required 5+ failures
+within the *same* 15-minute bin as the success. In a real attack where
+the correct password is found early in the account list (e.g., the 3rd
+of 10 attempts), only 2 failures precede the success — below the
+threshold, causing a missed detection (false negative).
+
+This is a meaningful weakness: a faster or luckier attacker — arguably
+the more dangerous case — would evade the rule, while a slower attacker
+would be caught. The rule was redesigned to decouple the failure count
+from a fixed time bin, instead correlating all failures and the
+success per source IP within a wider time correlation window, lowering
+the failure threshold to 3 to balance detection coverage against noise.
+
+the last crafted rule : 
+```
+index=wineventlog (EventCode=4625 OR EventCode=4624) 
+| where NOT match(TargetUserName, "\$") AND TargetUserName!="SYSTEM" AND TargetUserName!="ANONYMOUS LOGON"
+| stats count(eval(EventCode=4625)) as fails, count(eval(EventCode=4624)) as successes, dc(eval(if(EventCode=4625,TargetUserName,null))) as users_targeted, values(eval(if(EventCode=4624,TargetUserName,null))) as compromised_accounts, latest(eval(if(EventCode=4625,_time,null))) as last_fail, latest(eval(if(EventCode=4624,_time,null))) as last_success by src_ip
+| where fails>=3 AND successes>=1 AND abs(last_success - last_fail) <= 900
+```
+
+** The Second Attack 
+
+![Alert triggered](evidence/attack2.png)
+
+
+** The resulted Alert 
+
+![Alert triggered](evidence/alert2.png)
+
+![Alert triggered](evidence/alert2_detail.png)
+
+
+
+
+
+
+
+
+
+
+
+

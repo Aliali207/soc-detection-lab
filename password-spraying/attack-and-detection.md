@@ -79,7 +79,7 @@ a compromised account. This was not the detection rule correctly firing on
 benign activity (a true false positive); it was a logic gap in how the
 query identified "success" in the raw event data.
 
-![Alert triggered](evidence/alert2_no_modifcation.png)
+![Alert triggered](evidence/alert2_no_modification.png)
 
 I investigated by isolating the behavior: running the attack tool against
 the target with no credentials supplied (`nxc smb 10.0.2.10`) alone
@@ -89,9 +89,9 @@ establishes during its connection/reconnaissance phase, independent of
 the actual password-guessing attempts — not evidence of credential
 compromise.
 
-![Alert triggered](evidence/alert2_no_modifcation.png)
+![Alert triggered](evidence/command_invetsigate_gap.png)
 
-![Alert triggered](evidence/alert2_no_modifcation.png)
+![Alert triggered](evidence/gap_confirmed.png)
 
 The detection logic was refined to exclude this account from the
 "successful logon" condition. Its presence is still worth noting: an

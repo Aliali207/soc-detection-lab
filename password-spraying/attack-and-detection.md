@@ -54,16 +54,47 @@ reliably catching spraying behavior. Validated against lab data showing
 ## 3. Validation
 
 The alert was triggered successfully at `09:53`, around 10 minutes after the attack
-was executed, confirming the detection logic correctly identifies the
-
-
-## 4. Successful Attack Simulation
-
-
-
-
-simulated spraying pattern.
+was executed, confirming the detection logic correctly identifies the simulated spraying pattern.
 
 ![Alert triggered](evidence/alert_result.png)
 
 ![Alert triggered](evidence/alert_details.png)
+
+
+
+## 4. Successful Attack Simulation
+
+at first I tried this splunk query : 
+```
+index=wineventlog (EventCode=4625 OR EventCode=4624) src_ip=*
+| where NOT match(TargetUserName, "\$$") AND TargetUserName!="SYSTEM"
+| bin _time span=15m
+| stats count(eval(EventCode=4625)) as fails, count(eval(EventCode=4624)) as successes, dc(TargetUserName) as users_targeted, values(eval(if(EventCode=4624,TargetUserName,null))) as compromised_accounts by _time, src_ip
+| where fails>=5 AND successes>=1
+```
+During validation, I observed that the initial query incorrectly flagged
+a non-credentialed connection as a successful logon — an "ANONYMOUS LOGON"
+account appeared in the successes field, which would have been misread as
+a compromised account. This was not the detection rule correctly firing on
+benign activity (a true false positive); it was a logic gap in how the
+query identified "success" in the raw event data.
+
+![Alert triggered](evidence/alert2_no_modifcation.png)
+
+I investigated by isolating the behavior: running the attack tool against
+the target with no credentials supplied (`nxc smb 10.0.2.10`) alone
+generated the same ANONYMOUS LOGON event (4624, NTLM, no account name).
+This confirmed the event originates from an SMB null session the tool
+establishes during its connection/reconnaissance phase, independent of
+the actual password-guessing attempts — not evidence of credential
+compromise.
+
+![Alert triggered](evidence/alert2_no_modifcation.png)
+
+![Alert triggered](evidence/alert2_no_modifcation.png)
+
+The detection logic was refined to exclude this account from the
+"successful logon" condition. Its presence is still worth noting: an
+ANONYMOUS LOGON itself can be a reconnaissance indicator and, in a
+production environment, may warrant a separate, lower-severity alert.
+

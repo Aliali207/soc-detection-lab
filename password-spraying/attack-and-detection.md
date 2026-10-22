@@ -1,6 +1,6 @@
 # Attack Simulation & Detection Logic
 
-## 1. Attack Simulation
+## 1. Failed Attack Simulation
 
 **Technique:** Password Spraying (MITRE ATT&CK T1110.003)
 
@@ -55,6 +55,13 @@ reliably catching spraying behavior. Validated against lab data showing
 
 The alert was triggered successfully at `09:53`, around 10 minutes after the attack
 was executed, confirming the detection logic correctly identifies the
+
+
+## 4. Successful Attack Simulation
+
+
+
+
 simulated spraying pattern.
 
 ![Alert triggered](evidence/alert_result.png)

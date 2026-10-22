@@ -89,7 +89,7 @@ establishes during its connection/reconnaissance phase, independent of
 the actual password-guessing attempts — not evidence of credential
 compromise.
 
-![Alert triggered](evidence/command_invetsigate_gap.png)
+![Alert triggered](evidence/command_investigate_gap.png)
 
 ![Alert triggered](evidence/gap_confirmed.png)
 

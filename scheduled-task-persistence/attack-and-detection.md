@@ -15,7 +15,7 @@ Scheduled task creation (Event 4698) is not logged by default.
 ```powershell
 schtasks /create /tn "UpdateCheck" /tr "powershell.exe -WindowStyle Hidden -Command Write-Host Persistence" /sc onlogon /ru SYSTEM
 ```
-![Scheduled task creation](evidence/attack.png)
+![Scheduled task creation](evidence/create_service.png)
 
 This simulates a common persistence technique: creating a scheduled
 task that silently re-executes a PowerShell payload on every logon,
@@ -42,6 +42,8 @@ index="wineventlog" EventCode=4698
 
 ## 5. Validation
 
-![Alert triggered](evidence/alert-triggered.png)
+### Triggered Alert
+![Alert triggered](evidence/triggered-alert.png)
 
+### Alert Details
 ![Alert details](evidence/alert-details.png)
